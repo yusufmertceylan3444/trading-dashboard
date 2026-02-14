@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yusuf Otopilot Paneli</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 50px; }
+        .box { border: 2px solid #444; padding: 20px; border-radius: 15px; display: inline-block; background: #222; }
+        .status { font-size: 24px; font-weight: bold; padding: 10px; border-radius: 5px; }
+        .active { color: #2ecc71; }
+        .error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>📊 Trading Bot Dashboard</h1>
+        <div id="status-box" class="status">Yükleniyor...</div>
+        <p>Son Güncelleme: <span id="time">-</span></p>
+        <p id="msg" style="color: #aaa;"></p>
+    </div>
+
+    <script>
+        async function updateData() {
+            try {
+                // status.json dosyasını GitHub'dan çek (Önbelleği önlemek için sonuna zaman ekliyoruz)
+                const res = await fetch('status.json?t=' + new Date().getTime());
+                const data = await res.json();
+                
+                const box = document.getElementById('status-box');
+                box.innerText = data.bot_status;
+                box.className = 'status ' + (data.bot_status.includes('AKTİF') ? 'active' : 'error');
+                
+                document.getElementById('time').innerText = data.last_update;
+                document.getElementById('msg').innerText = data.message;
+            } catch (e) { console.log("Veri henüz hazır değil."); }
+        }
+        setInterval(updateData, 5000); // 5 saniyede bir güncelle
+        updateData();
+    </script>
+</body>
+</html>
