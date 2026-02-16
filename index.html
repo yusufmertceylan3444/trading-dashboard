@@ -2,40 +2,159 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Ymcbot Otopilot Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ymcbot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 50px; }
-        .box { border: 2px solid #444; padding: 20px; border-radius: 15px; display: inline-block; background: #222; }
-        .status { font-size: 24px; font-weight: bold; padding: 10px; border-radius: 5px; }
-        .active { color: #2ecc71; }
-        .error { color: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; }
+        .clocks { display: flex; gap: 20px; text-align: left; }
+        .clock-box { background: #1a1a1a; padding: 5px 15px; border-radius: 5px; border: 1px solid #444; }
+        .clock-label { font-size: 10px; color: #888; text-transform: uppercase; }
+        .clock-time { font-family: monospace; font-size: 18px; font-weight: bold; }
+
+        .bot-mode { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .status-on { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+        .status-sleep { background: #f1c40f; }
+        .status-error { background: #e74c3c; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1a1a1a; border: 2px solid #333; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-label { color: #888; font-size: 14px; margin-bottom: 10px; }
+        .stat-value { font-size: 22px; font-weight: bold; color: #fff; }
+        .pnl-positive { color: #2ecc71; }
+        .pnl-negative { color: #e74c3c; }
+
+        .chart-container { background: #1a1a1a; border: 2px solid #333; padding: 20px; border-radius: 10px; height: 400px; }
+        .last-msg { margin-top: 15px; color: #666; font-style: italic; font-size: 13px; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>📊 Trading Bot Dashboard</h1>
-        <div id="status-box" class="status">Yükleniyor...</div>
-        <p>Son Güncelleme: <span id="time">-</span></p>
-        <p id="msg" style="color: #aaa;"></p>
+
+    <div class="header">
+        <div class="clocks">
+            <div class="clock-box">
+                <div class="clock-label">Istanbul</div>
+                <div id="ist-clock" class="clock-time">00:00:00</div>
+            </div>
+            <div class="clock-box">
+                <div class="clock-label">New York</div>
+                <div id="ny-clock" class="clock-time">00:00:00</div>
+            </div>
+        </div>
+        <h2>Ymcbot Dashboard</h2>
+        <div class="bot-mode">
+            Mode: <span id="mode-text">YÜKLENİYOR</span>
+            <span id="mode-dot" class="status-dot"></span>
+        </div>
     </div>
 
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Güncel Hesap Bakiyesi</div>
+            <div id="balance" class="stat-value">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Toplam İşlem Sayısı</div>
+            <div id="trades" class="stat-value">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Pozisyon Bilgisi</div>
+            <div id="pos" class="stat-value">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">P/L</div>
+            <div id="pnl" class="stat-value">-</div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="equityChart"></canvas>
+    </div>
+
+    <div id="msg" class="last-msg">Sistem başlatılıyor...</div>
+
     <script>
-        async function updateData() {
+        let myChart;
+
+        function updateClocks() {
+            const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('ist-clock').innerText = new Date().toLocaleString('tr-TR', { ...options, timeZone: 'Europe/Istanbul' });
+            document.getElementById('ny-clock').innerText = new Date().toLocaleString('tr-TR', { ...options, timeZone: 'America/New_York' });
+        }
+        setInterval(updateClocks, 1000);
+
+        async function fetchData() {
             try {
-                // status.json dosyasını GitHub'dan çek (Önbelleği önlemek için sonuna zaman ekliyoruz)
                 const res = await fetch('status.json?t=' + new Date().getTime());
                 const data = await res.json();
+
+                // Statik verileri güncelle
+                document.getElementById('balance').innerText = data.balance;
+                document.getElementById('trades').innerText = data.total_trades;
+                document.getElementById('pos').innerText = data.position;
+                document.getElementById('pnl').innerText = data.total_pnl;
+                document.getElementById('msg').innerText = "Son Güncelleme: " + data.last_update + " | " + data.message;
                 
-                const box = document.getElementById('status-box');
-                box.innerText = data.bot_status;
-                box.className = 'status ' + (data.bot_status.includes('AKTİF') ? 'active' : 'error');
-                
-                document.getElementById('time').innerText = data.last_update;
-                document.getElementById('msg').innerText = data.message;
-            } catch (e) { console.log("Veri henüz hazır değil."); }
+                // P/L Rengi
+                document.getElementById('pnl').className = 'stat-value ' + (data.total_pnl.includes('+') ? 'pnl-positive' : 'pnl-negative');
+
+                // Bot Durumu Görseli
+                const modeText = data.bot_status.toUpperCase();
+                document.getElementById('mode-text').innerText = modeText;
+                const dot = document.getElementById('mode-dot');
+                dot.className = 'status-dot';
+                if(modeText.includes('ON')) dot.classList.add('status-on');
+                else if(modeText.includes('SLEEP')) dot.classList.add('status-sleep');
+                else dot.classList.add('status-error');
+
+                // Grafiği Güncelle
+                updateChart(data.equity_history);
+
+            } catch (e) { console.error("Veri çekilemedi:", e); }
         }
-        setInterval(updateData, 5000); // 5 saniyede bir güncelle
-        updateData();
+
+        function updateChart(history) {
+            const labels = history.map(h => h.time);
+            const values = history.map(h => h.val);
+
+            if (myChart) {
+                myChart.data.labels = labels;
+                myChart.data.datasets[0].data = values;
+                myChart.update();
+            } else {
+                const ctx = document.getElementById('equityChart').getContext('2d');
+                myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Account Equity ($)',
+                            data: values,
+                            borderColor: '#2ecc71',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: '#333' }, ticks: { color: '#888' } },
+                            x: { grid: { display: false }, ticks: { color: '#888' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        setInterval(fetchData, 10000); // 10 saniyede bir JSON'u kontrol et
+        fetchData();
+        updateClocks();
     </script>
 </body>
 </html>
