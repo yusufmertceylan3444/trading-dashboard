@@ -6,31 +6,48 @@
     <title>Ymcbot Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; }
-        .clocks { display: flex; gap: 20px; text-align: left; }
-        .clock-box { background: #1a1a1a; padding: 5px 15px; border-radius: 5px; border: 1px solid #444; }
-        .clock-label { font-size: 10px; color: #888; text-transform: uppercase; }
-        .clock-time { font-family: monospace; font-size: 18px; font-weight: bold; }
+        /* GENEL TASARIM */
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 15px; }
+        
+        /* BAŞLIK - MOBİLDE EN ÜSTTE */
+        .main-title { text-align: center; margin-bottom: 15px; font-size: 24px; font-weight: bold; color: #2ecc71; }
 
-        .bot-mode { display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .status-on { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+        /* HEADER (SAATLER VE MOD) */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border: 2px solid #333; padding: 10px; border-radius: 12px; background: #1a1a1a; }
+        .clocks { display: flex; gap: 10px; }
+        .clock-box { background: #0f0f0f; padding: 5px 10px; border-radius: 8px; border: 1px solid #444; min-width: 80px; text-align: center; }
+        .clock-label { font-size: 9px; color: #888; text-transform: uppercase; }
+        .clock-time { font-family: monospace; font-size: 14px; font-weight: bold; }
+
+        .bot-mode { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-on { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
         .status-sleep { background: #f1c40f; }
         .status-error { background: #e74c3c; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #1a1a1a; border: 2px solid #333; padding: 15px; border-radius: 10px; text-align: center; }
-        .stat-label { color: #888; font-size: 14px; margin-bottom: 10px; }
-        .stat-value { font-size: 22px; font-weight: bold; color: #fff; }
-        .pnl-positive { color: #2ecc71; }
-        .pnl-negative { color: #e74c3c; }
+        /* STATS GRID - MASAÜSTÜ 4, MOBİL 2 KOLON */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: #1a1a1a; border: 2px solid #333; padding: 12px; border-radius: 12px; text-align: center; }
+        .stat-label { color: #888; font-size: 12px; margin-bottom: 8px; }
+        .stat-value { font-size: 18px; font-weight: bold; }
 
-        .chart-container { background: #1a1a1a; border: 2px solid #333; padding: 20px; border-radius: 10px; height: 400px; }
-        .last-msg { margin-top: 15px; color: #666; font-style: italic; font-size: 13px; text-align: center; }
+        /* GRAFİK ALANI */
+        .chart-container { background: #1a1a1a; border: 2px solid #333; padding: 15px; border-radius: 12px; height: 350px; position: relative; }
+        .last-msg { margin-top: 15px; color: #666; font-size: 12px; text-align: center; padding-bottom: 20px; }
+
+        /* MOBİL ÖZEL AYARLAR (Responsive) */
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); } /* 2x2 Düzeni */
+            .header { flex-direction: column; gap: 10px; } /* Saatler ve Mod alt alta */
+            .stat-value { font-size: 16px; }
+            .chart-container { height: 300px; } /* Mobilde grafik yüksekliği */
+            .main-title { font-size: 20px; }
+        }
     </style>
 </head>
 <body>
+
+    <div class="main-title">Ymcbot Dashboard</div>
 
     <div class="header">
         <div class="clocks">
@@ -43,28 +60,27 @@
                 <div id="ny-clock" class="clock-time">00:00:00</div>
             </div>
         </div>
-        <h2>Ymcbot Dashboard</h2>
         <div class="bot-mode">
-            Mode: <span id="mode-text">YÜKLENİYOR</span>
+            MODE: <span id="mode-text">-</span>
             <span id="mode-dot" class="status-dot"></span>
         </div>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-label">Güncel Hesap Bakiyesi</div>
+            <div class="stat-label">Bakiye</div>
             <div id="balance" class="stat-value">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Toplam İşlem Sayısı</div>
+            <div class="stat-label">İşlem Sayısı</div>
             <div id="trades" class="stat-value">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Pozisyon Bilgisi</div>
+            <div class="stat-label">Pozisyon</div>
             <div id="pos" class="stat-value">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">P/L</div>
+            <div class="stat-label">Toplam P/L</div>
             <div id="pnl" class="stat-value">-</div>
         </div>
     </div>
@@ -73,7 +89,7 @@
         <canvas id="equityChart"></canvas>
     </div>
 
-    <div id="msg" class="last-msg">Sistem başlatılıyor...</div>
+    <div id="msg" class="last-msg">Veriler güncelleniyor...</div>
 
     <script>
         let myChart;
@@ -90,17 +106,17 @@
                 const res = await fetch('status.json?t=' + new Date().getTime());
                 const data = await res.json();
 
-                // Statik verileri güncelle
                 document.getElementById('balance').innerText = data.balance;
                 document.getElementById('trades').innerText = data.total_trades;
                 document.getElementById('pos').innerText = data.position;
                 document.getElementById('pnl').innerText = data.total_pnl;
-                document.getElementById('msg').innerText = "Son Güncelleme: " + data.last_update + " | " + data.message;
+                document.getElementById('msg').innerText = "Son Senkron: " + data.last_update + " | " + data.message;
                 
                 // P/L Rengi
-                document.getElementById('pnl').className = 'stat-value ' + (data.total_pnl.includes('+') ? 'pnl-positive' : 'pnl-negative');
+                const pnlElement = document.getElementById('pnl');
+                pnlElement.style.color = data.total_pnl.includes('+') ? '#2ecc71' : '#e74c3c';
 
-                // Bot Durumu Görseli
+                // Mod Kontrolü
                 const modeText = data.bot_status.toUpperCase();
                 document.getElementById('mode-text').innerText = modeText;
                 const dot = document.getElementById('mode-dot');
@@ -109,10 +125,9 @@
                 else if(modeText.includes('SLEEP')) dot.classList.add('status-sleep');
                 else dot.classList.add('status-error');
 
-                // Grafiği Güncelle
-                updateChart(data.equity_history);
+                if(data.equity_history) updateChart(data.equity_history);
 
-            } catch (e) { console.error("Veri çekilemedi:", e); }
+            } catch (e) { console.log("Veri henüz yüklenemedi."); }
         }
 
         function updateChart(history) {
@@ -130,13 +145,14 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Account Equity ($)',
+                            label: 'Equity',
                             data: values,
                             borderColor: '#2ecc71',
                             backgroundColor: 'rgba(46, 204, 113, 0.1)',
                             borderWidth: 2,
                             fill: true,
-                            tension: 0.3
+                            pointRadius: 2,
+                            tension: 0.4
                         }]
                     },
                     options: {
@@ -144,15 +160,15 @@
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: { grid: { color: '#333' }, ticks: { color: '#888' } },
-                            x: { grid: { display: false }, ticks: { color: '#888' } }
+                            y: { grid: { color: '#222' }, ticks: { color: '#666', size: 10 } },
+                            x: { grid: { display: false }, ticks: { color: '#666', size: 10 } }
                         }
                     }
                 });
             }
         }
 
-        setInterval(fetchData, 10000); // 10 saniyede bir JSON'u kontrol et
+        setInterval(fetchData, 10000);
         fetchData();
         updateClocks();
     </script>
