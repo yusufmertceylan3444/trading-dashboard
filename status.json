@@ -1,1 +1,1 @@
-{"bot_status": "UYKUDA \ud83d\udca4", "balance": "$88.47", "position": "BEKLEMEDE", "last_update": "16/02 06:08:16", "message": "Borsa kapal\u0131. 1 saat uyunuyor."}
+{"bot_status": "ERROR \u26a0\ufe0f", "balance": "$0.00", "position": "YOK", "pos_detail": "YOK", "total_trades": 0, "total_pnl": "$-88.47", "equity_history": [{"time": "12:01", "val": 0}], "last_update": "16/02 12:01:41", "message": "Hata: [WinError 1225] Uzaktaki bilgisayar a\u011f ba\u011flant\u0131s\u0131n"}
