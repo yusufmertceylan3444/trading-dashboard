@@ -1,1 +1,1 @@
-{"bot_status": "ON \u26a0\ufe0f", "market_open": "A\u00c7IK", "balance": "$88.47", "position": "YOK", "pos_detail": "YOK", "total_trades": 0, "total_pnl": "+$0.00", "equity_history": [{"time": "18:18", "val": 88.47}], "last_update": "18/02 18:18:19", "message": "Bakiye yetersiz!"}
+{"bot_status": "ON", "market_open": "A\u00c7IK", "balance": "$88.47", "position": "VAR", "pos_detail": "BEKLIYOR", "total_trades": 1, "total_pnl": "+$0.00", "equity_history": [{"time": "18:25", "val": 88.47}], "last_update": "18/02 18:25:22", "message": "EM\u0130R: 0.4194 ADET"}
